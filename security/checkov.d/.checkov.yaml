@@ -1,0 +1,2 @@
+skip_checks:
+  - CKV_TF_1  # example

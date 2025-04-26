@@ -1,0 +1,22 @@
+---
+- name: Ensure UFW is installed
+  apt:
+    name: ufw
+    state: present
+  when: ansible_os_family == 'Debian'
+
+- name: Configure firewall
+  ufw:
+    rule: allow
+    port: "{{ item }}"
+  loop: "{{ firewall_allowed_tcp_ports }}"
+
+- name: Harden SSH
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    - { regexp: '^PermitRootLogin',  line: "PermitRootLogin {{ ssh_permit_root_login }}" }
+    - { regexp: '^PasswordAuthentication', line: "PasswordAuthentication {{ ssh_password_auth }}" }
+  notify: restart ssh

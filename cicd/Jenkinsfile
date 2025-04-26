@@ -1,0 +1,30 @@
+pipeline {
+  agent any
+  environment {
+    TF_ENV          = "${params.ENV ?: 'lab'}"
+    TF_DIR          = "terraform/envs/${TF_ENV}"
+    VAULT_PASS_FILE = "ansible/vault.pass"
+  }
+
+  parameters {
+    string(name: 'ENV', defaultValue: 'lab', description: 'Target environment')
+  }
+
+  stages {
+    stage('Checkout')          { steps { checkout scm } }
+    stage('Lint')              { steps { sh 'make lint ENV=$ENV' } }
+    stage('Plan')              { steps { sh 'make plan ENV=$ENV' } }
+    stage('Security Policy')   { steps { sh "opa eval --format pretty --fail-defined -i ${TF_DIR} -d terraform/opa-policies" } }
+    stage('Apply') {
+      when { branch 'main' }
+      steps { sh 'make apply ENV=$ENV' }
+    }
+  }
+
+  post {
+    always {
+      archiveArtifacts artifacts: 'security/reports/**/*', allowEmptyArchive: true
+      cleanWs()
+    }
+  }
+}
