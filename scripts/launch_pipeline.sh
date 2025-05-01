@@ -1,17 +1,14 @@
 #!/usr/bin/env bash
-# Run on the client (192.168.178.52) to trigger Jenkins
-
 set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
 read -rp "How many VMs? "        VM_COUNT
 read -rp "vCPU per VM? "         VCPU
 read -rp "RAM per VM (MB)? "     RAM
-read -rp "Template name? "       OS_TEMPLATE   # e.g. ubuntu-22.04-cloud
+read -rp "Template name? "       OS_TEMPLATE
 
-# basic sanity:
-[[ $VM_COUNT =~ ^[0-9]+$ ]] || { echo "Bad number"; exit 1; }
-
-cat > terraform/terraform.tfvars.json <<EOF
+cat > "${REPO_ROOT}/terraform/terraform.tfvars.json" <<EOF
 {
   "vm_count"     : $VM_COUNT,
   "vm_cpu"       : $VCPU,
