@@ -24,8 +24,8 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'proxmox-token', variable: 'PM_SECRET')]) {
                     withEnv([
-                        'TF_VAR_pm_api_token_secret=' + env.PM_SECRET,
-                        'TF_VAR_pm_api_token_id=terraform@pve!terraform-token'
+                        "TF_VAR_pm_api_token_id=root@pam!terraform1",
+                        "TF_VAR_pm_api_token_secret=${PM_SECRET}"
                     ]) {
                         sh 'make plan'
                     }
@@ -44,8 +44,8 @@ pipeline {
             steps {
               withCredentials([string(credentialsId: 'proxmox-token', variable: 'PM_SECRET')]) {
                 withEnv([
-                  "TF_VAR_pm_api_token_secret=${PM_SECRET}",
-                  "TF_VAR_pm_api_token_id=terraform@pve!terraform-token"
+                  "TF_VAR_pm_api_token_id=root@pam!terraform1",
+                  "TF_VAR_pm_api_token_secret=${PM_SECRET}"
                 ]) {
                   sh 'make apply'
                 }
