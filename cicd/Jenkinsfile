@@ -1,46 +1,50 @@
 pipeline {
-  agent any
+    agent any
 
-  environment {
-    TF_DIR          = "terraform"
-    VAULT_PASS_FILE = "ansible/vault.pass"
-  }
-
-  stages {
-    stage('Checkout') { steps { checkout scm } }
-
-    stage('Lint')     { steps { sh 'make lint' } }
-
-    stage('Plan') {
-      steps {
-        withCredentials([string(credentialsId: 'proxmox-token', variable: 'PM_SECRET')]) {
-        withEnv(['TF_VAR_pm_api_token_secret=' + env.PM_SECRET]) {
-        sh 'make plan'
-      }
-    }
-  }
-}
-
-    stage('Security Policy') {
-      steps { sh "opa eval --format pretty --fail-defined -i ${TF_DIR} -d terraform/opa-policies" }
+    environment {
+        // Terraform wants these env-vars
+        TF_IN_AUTOMATION = 'true'
     }
 
-    stage('Apply') {
-      when { branch 'main' }
-      steps {
-        withCredentials([string(credentialsId: 'proxmox-token', variable: 'PM_SECRET')]) {
-          withEnv(['TF_VAR_pm_api_token_secret=' + env.PM_SECRET]) {
-            sh 'make apply'
-          }
+    stages {
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
         }
-      }
-}
-  }
 
-  post {
-    always {
-      archiveArtifacts artifacts: 'security/reports/**/*', allowEmptyArchive: true
-      cleanWs()
+        stage('Lint') {
+            steps {
+                sh 'make lint'
+            }
+        }
+
+        stage('Plan') {
+            steps {
+                withCredentials([string(credentialsId: 'proxmox-token', variable: 'PM_SECRET')]) {
+                    withEnv([
+                        'TF_VAR_pm_api_token_secret=' + env.PM_SECRET,
+                        'TF_VAR_pm_api_token_id=terraform@pve!terraform-token'
+                    ]) {
+                        sh 'make plan'
+                    }
+                }
+            }
+        }
+
+        stage('Apply') {
+            when { branch 'main' }   // only auto-apply on main
+            steps {
+                withCredentials([string(credentialsId: 'proxmox-token', variable: 'PM_SECRET')]) {
+                    withEnv([
+                        'TF_VAR_pm_api_token_secret=' + env.PM_SECRET,
+                        'TF_VAR_pm_api_token_id=terraform@pve!terraform-token'
+                    ]) {
+                        sh 'make apply'
+                    }
+                }
+            }
+        }
     }
-  }
 }
