@@ -34,17 +34,23 @@ pipeline {
         }
 
         stage('Apply') {
-            when { branch 'main' }   // only auto-apply on main
-            steps {
-                withCredentials([string(credentialsId: 'proxmox-token', variable: 'PM_SECRET')]) {
-                    withEnv([
-                        'TF_VAR_pm_api_token_secret=' + env.PM_SECRET,
-                        'TF_VAR_pm_api_token_id=terraform@pve!terraform-token'
-                    ]) {
-                        sh 'make apply'
-                    }
-                }
+            when {
+              expression {
+                // This works in both single and multibranch jobs,
+                // as long as you tell Git to checkout "main".
+                return env.GIT_BRANCH?.endsWith('main') || env.BRANCH_NAME == 'main'
+              }
             }
-        }
+            steps {
+              withCredentials([string(credentialsId: 'proxmox-token', variable: 'PM_SECRET')]) {
+                withEnv([
+                  "TF_VAR_pm_api_token_secret=${PM_SECRET}",
+                  "TF_VAR_pm_api_token_id=terraform@pve!terraform-token"
+                ]) {
+                  sh 'make apply'
+                }
+              }
+            }
+          }
     }
 }
