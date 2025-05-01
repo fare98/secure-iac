@@ -1,18 +1,4 @@
-# Terraform
 *.tfstate*
 .terraform/
-crash.log
-
-# Ansible Vault & runtime
-ansible/vault.pass
-*.vault
-*.retry
-*.log
-
-# Jenkins artefacts
-cicd/workspace/
 security/reports/
-
-# Misc
-*.swp
-.DS_Store
+ansible/vault.pass

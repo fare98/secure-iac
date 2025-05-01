@@ -1,23 +1,17 @@
 #!/usr/bin/env bash
-# Collect user input → write tfvars.json → trigger Jenkins build
+# Run on the client (192.168.178.52) to trigger Jenkins
 
 set -euo pipefail
-LOG_DIR="$(dirname "$0")/logs"
-mkdir -p "$LOG_DIR"
 
-read -rp "Environment (lab/prod) [lab]: " ENV
-ENV=${ENV:-lab}
+read -rp "How many VMs? "        VM_COUNT
+read -rp "vCPU per VM? "         VCPU
+read -rp "RAM per VM (MB)? "     RAM
+read -rp "Template name? "       OS_TEMPLATE   # e.g. ubuntu-22.04-cloud
 
-read -rp "Number of VMs: " VM_COUNT
-read -rp "vCPU per VM  : " VCPU
-read -rp "RAM  (MB)    : " RAM
-read -rp "OS template  : " OS_TEMPLATE   # e.g. ubuntu-22.04-cloud
+# basic sanity:
+[[ $VM_COUNT =~ ^[0-9]+$ ]] || { echo "Bad number"; exit 1; }
 
-# basic validation
-"$(dirname "$0")/validate_input.sh" "$VM_COUNT" "$VCPU" "$RAM"
-
-TFVARS=terraform/envs/$ENV/terraform.tfvars.json
-cat >"$TFVARS" <<EOF
+cat > terraform/terraform.tfvars.json <<EOF
 {
   "vm_count"     : $VM_COUNT,
   "vm_cpu"       : $VCPU,
@@ -25,14 +19,8 @@ cat >"$TFVARS" <<EOF
   "vm_template"  : "$OS_TEMPLATE"
 }
 EOF
-echo "Wrote $TFVARS"
+echo "Wrote terraform.tfvars.json"
 
-# Trigger Jenkins
-JENKINS_URL="<JENKINS_URL>"
-JOB="secure-idp"
-curl -sS -u "<JENKINS_USER>:<JENKINS_API_TOKEN>" \
-     -X POST "$JENKINS_URL/job/$JOB/buildWithParameters" \
-     --data-urlencode "ENV=$ENV" \
-     --data-urlencode "GIT_COMMIT=$(git rev-parse HEAD)"
-
-echo "Pipeline triggered – watch Jenkins for progress."
+curl -sS -u "admin:119e754c394710b2" \
+     -X POST "http://192.168.178.50:8080/job/secure-idp/build"
+echo "Triggered Jenkins build."

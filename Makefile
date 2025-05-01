@@ -1,23 +1,19 @@
-ENV ?= lab
-TF_DIR := terraform/envs/$(ENV)
+TF_DIR := terraform          # single IaC directory
 
 .PHONY: lint plan apply destroy ansible
 
-lint:        ## run all linters
+lint:
 	tflint --init && tflint
 	tfsec $(TF_DIR)
 	checkov -d $(TF_DIR)
 	ansible-lint ansible
 
-plan: lint   ## terraform plan
+plan: lint
 	cd $(TF_DIR) && terraform init -upgrade && terraform plan -out=plan.tfplan
 
-apply:       ## terraform apply + ansible
+apply:
 	cd $(TF_DIR) && terraform apply -auto-approve plan.tfplan
-	ansible-playbook -i ansible/inventories/$(ENV)/hosts.yaml ansible/site.yml
+	ansible-playbook -i ansible/inventories/hosts.yaml ansible/site.yml
 
-destroy:     ## remove all lab resources
+destroy:
 	cd $(TF_DIR) && terraform destroy -auto-approve
-
-ansible:     ## run only ansible hardening
-	ansible-playbook -i ansible/inventories/$(ENV)/hosts.yaml ansible/site.yml

@@ -1,7 +1,7 @@
 multibranchPipelineJob('secure-idp') {
   branchSources {
     git {
-      remote('<YOUR_GIT_REPO>')
+      remote('git@github.com:fare98/secure-iac.git')
       credentialsId('git-ssh-key')
     }
   }

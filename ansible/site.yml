@@ -1,7 +1,5 @@
 ---
-- name: Harden and configure VMs
-  hosts: idp_vms
+- hosts: all
   become: yes
   roles:
     - harden
-    - monitoring_agent
