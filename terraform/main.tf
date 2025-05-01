@@ -11,7 +11,7 @@ terraform {
 provider "proxmox" {
   pm_api_url          = "https://192.168.178.10:8006/api2/json"   # adjust if Proxmox IP differs
   pm_api_token_id     = "proxmox-token"
-  pm_api_token_secret = "root@pam!terraform=8e2529e9-7207-4468-a8d0-4817be5601d"
+  pm_api_token_secret = var.pm_api_token_secret
   pm_tls_insecure     = true
 }
 

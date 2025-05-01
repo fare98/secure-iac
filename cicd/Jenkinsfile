@@ -11,7 +11,15 @@ pipeline {
 
     stage('Lint')     { steps { sh 'make lint' } }
 
-    stage('Plan')     { steps { sh 'make plan' } }
+    stage('Plan') {
+      steps {
+        withCredentials([string(credentialsId: 'proxmox-token', variable: 'PM_SECRET')]) {
+        withEnv(['TF_VAR_pm_api_token_secret=' + env.PM_SECRET]) {
+        sh 'make plan'
+      }
+    }
+  }
+}
 
     stage('Security Policy') {
       steps { sh "opa eval --format pretty --fail-defined -i ${TF_DIR} -d terraform/opa-policies" }
@@ -19,8 +27,14 @@ pipeline {
 
     stage('Apply') {
       when { branch 'main' }
-      steps { sh 'make apply' }
-    }
+      steps {
+        withCredentials([string(credentialsId: 'proxmox-token', variable: 'PM_SECRET')]) {
+          withEnv(['TF_VAR_pm_api_token_secret=' + env.PM_SECRET]) {
+            sh 'make apply'
+          }
+        }
+      }
+}
   }
 
   post {
