@@ -10,11 +10,13 @@ resource "proxmox_vm_qemu" "this" {
   memory  = var.vm_memory_mb
 
   network {
+    id     = 0
     model  = "virtio"
     bridge = "vmbr0"
   }
 
   disk {
+    slot    = 0
     type    = "scsi"
     storage = "local-lvm"
     size    = "20G"
