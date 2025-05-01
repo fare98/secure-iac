@@ -12,7 +12,7 @@ plan: lint
 
 apply:
 	cd $(TF_DIR) && terraform apply -auto-approve plan.tfplan
-	ansible-playbook -i ansible/inventories/hosts.yaml ansible/site.yml
+
 
 destroy:
 	cd $(TF_DIR) && terraform destroy -auto-approve

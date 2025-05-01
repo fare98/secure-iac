@@ -16,12 +16,12 @@ provider "proxmox" {
 }
 
 module "vm" {
-  source    = "./modules/vm"
-  providers = { proxmox = proxmox }
+  source     = "./modules/vm"
+  providers  = { proxmox = proxmox }
 
-  vm_count       = var.vm_count
-  vm_cpu         = var.vm_cpu
-  vm_memory_mb   = var.vm_memory_mb
-  vm_template    = var.vm_template
-  proxmox_node   = "pve"
+  vm_count     = var.vm_count
+  vm_cpu       = var.vm_cpu
+  vm_memory_mb = var.vm_memory_mb
+  vm_template  = var.vm_template
+  proxmox_node = "pve"
 }
