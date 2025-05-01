@@ -1,30 +1,21 @@
-pipeline {
-  agent any
-  environment {
-    TF_ENV          = "${params.ENV ?: 'lab'}"
-    TF_DIR          = "terraform/envs/${TF_ENV}"
-    VAULT_PASS_FILE = "ansible/vault.pass"
-  }
+# NEW Makefile (minimal, single environment)
 
-  parameters {
-    string(name: 'ENV', defaultValue: 'lab', description: 'Target environment')
-  }
+TF_DIR := terraform            # one directory only
 
-  stages {
-    stage('Checkout')          { steps { checkout scm } }
-    stage('Lint')              { steps { sh 'make lint ENV=$ENV' } }
-    stage('Plan')              { steps { sh 'make plan ENV=$ENV' } }
-    stage('Security Policy')   { steps { sh "opa eval --format pretty --fail-defined -i ${TF_DIR} -d terraform/opa-policies" } }
-    stage('Apply') {
-      when { branch 'main' }
-      steps { sh 'make apply ENV=$ENV' }
-    }
-  }
+.PHONY: lint plan apply destroy ansible
 
-  post {
-    always {
-      archiveArtifacts artifacts: 'security/reports/**/*', allowEmptyArchive: true
-      cleanWs()
-    }
-  }
-}
+lint:
+	tflint --init && tflint
+	tfsec $(TF_DIR)
+	checkov -d $(TF_DIR)
+	ansible-lint ansible
+
+plan: lint
+	cd $(TF_DIR) && terraform init -upgrade && terraform plan -out=plan.tfplan
+
+apply:
+	cd $(TF_DIR) && terraform apply -auto-approve plan.tfplan
+	ansible-playbook -i ansible/inventories/hosts.yaml ansible/site.yml
+
+destroy:
+	cd $(TF_DIR) && terraform destroy -auto-approve
