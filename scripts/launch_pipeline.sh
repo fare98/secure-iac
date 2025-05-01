@@ -18,6 +18,9 @@ cat > "${REPO_ROOT}/terraform/terraform.tfvars.json" <<EOF
 EOF
 echo "Wrote terraform.tfvars.json"
 
-curl -sS -u "admin:119e754c394710b2" \
-     -X POST "http://192.168.178.50:8080/job/secure-idp/build"
-echo "Triggered Jenkins build."
+
+JENKINS_USER="admin"
+JENKINS_TOKEN="11070510890378cb97b87c9809bd0f9fad"  
+
+curl -sS "http://${JENKINS_USER}:${JENKINS_TOKEN}@192.168.178.50:8080/job/secure-idp/build"
+
