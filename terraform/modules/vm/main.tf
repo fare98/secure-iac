@@ -4,7 +4,6 @@ resource "proxmox_vm_qemu" "this" {
   target_node = var.proxmox_node
   clone       = var.vm_template
 
-  cpu     = var.vm_cpu
   cores   = var.vm_cpu
   sockets = 1
   memory  = var.vm_memory_mb
@@ -16,8 +15,8 @@ resource "proxmox_vm_qemu" "this" {
   }
 
   disk {
-    slot    = 0
-    type    = "scsi"
+    slot    = "scsi0"
+    type    = "disk"
     storage = "local-lvm"
     size    = "20G"
   }
