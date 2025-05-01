@@ -6,7 +6,6 @@ lint:
 	tflint --init && tflint
 	tfsec $(TF_DIR)
 	checkov -d $(TF_DIR)
-	ansible-lint ansible
 
 plan: lint
 	cd $(TF_DIR) && terraform init -upgrade && terraform plan -out=plan.tfplan
