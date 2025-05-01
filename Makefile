@@ -8,7 +8,7 @@ lint:
 	checkov -d $(TF_DIR)
 
 plan: lint
-	cd $(TF_DIR) && terraform init -upgrade && terraform plan -out=plan.tfplan
+	cd $(TF_DIR) && terraform init -upgrade && terraform plan -refresh=false -out=plan.tfplan
 
 apply:
 	cd $(TF_DIR) && terraform apply -auto-approve plan.tfplan
