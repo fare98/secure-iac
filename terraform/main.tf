@@ -24,4 +24,25 @@ module "vm" {
   vm_memory_mb = var.vm_memory_mb
   vm_template  = var.vm_template
   proxmox_node = "pve"
+  
+  # SSH keys for cloud-init
+  ssh_public_key  = var.ssh_public_key
+  ssh_private_key = var.ssh_private_key_path
+}
+
+# Outputs for Ansible integration
+output "vm_ips" {
+  value = module.vm.vm_ips
+}
+
+output "ansible_inventory" {
+  value = module.vm.ansible_inventory
+}
+
+# Generate Ansible inventory file
+resource "local_file" "ansible_inventory" {
+  content = templatefile("${path.module}/templates/ansible_inventory.tpl", {
+    vms = module.vm.ansible_inventory
+  })
+  filename = "${path.module}/../ansible/inventories/hosts_dynamic.yml"
 }

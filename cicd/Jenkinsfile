@@ -42,13 +42,43 @@ pipeline {
               }
             }
             steps {
-              withCredentials([string(credentialsId: 'proxmox-token', variable: 'PM_SECRET')]) {
+              withCredentials([
+                string(credentialsId: 'proxmox-token', variable: 'PM_SECRET'),
+                sshUserPrivateKey(credentialsId: 'ansible-ssh-key', keyFileVariable: 'SSH_KEY')
+              ]) {
                 withEnv([
                   "TF_VAR_pm_api_token_id=root@pam!terraform1",
-                  "TF_VAR_pm_api_token_secret=${PM_SECRET}"
+                  "TF_VAR_pm_api_token_secret=${PM_SECRET}",
+                  "TF_VAR_ssh_private_key_path=${SSH_KEY}"
                 ]) {
                   sh 'make apply'
                 }
+              }
+            }
+          }
+
+        stage('Configure VMs') {
+            when {
+              expression {
+                return env.GIT_BRANCH?.endsWith('main') || env.BRANCH_NAME == 'main'
+              }
+            }
+            steps {
+              withCredentials([
+                sshUserPrivateKey(credentialsId: 'ansible-ssh-key', keyFileVariable: 'SSH_KEY')
+              ]) {
+                sh '''
+                  cd ansible
+                  export ANSIBLE_HOST_KEY_CHECKING=False
+                  export ANSIBLE_PRIVATE_KEY_FILE="${SSH_KEY}"
+                  
+                  # Wait for VMs to be ready
+                  echo "Waiting for VMs to be ready..."
+                  sleep 30
+                  
+                  # Run Ansible playbook with dynamic inventory
+                  ansible-playbook -i inventories/hosts_dynamic.yml site.yml
+                '''
               }
             }
           }
