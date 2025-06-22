@@ -22,10 +22,14 @@ pipeline {
 
         stage('Plan') {
             steps {
-                withCredentials([string(credentialsId: 'proxmox-token', variable: 'PM_SECRET')]) {
+                withCredentials([
+                    string(credentialsId: 'proxmox-token', variable: 'PM_SECRET'),
+                    sshUserPrivateKey(credentialsId: 'ansible-ssh-key', keyFileVariable: 'SSH_KEY')
+                ]) {
                     withEnv([
-                        "TF_VAR_pm_api_token_id=root@pam!terraform1",
-                        "TF_VAR_pm_api_token_secret=${PM_SECRET}"
+                        'TF_VAR_pm_api_token_id=root@pam!terraform1',
+                        'TF_VAR_pm_api_token_secret=' + PM_SECRET,
+                        'TF_VAR_ssh_private_key_path=' + SSH_KEY
                     ]) {
                         sh 'make plan'
                     }
@@ -47,9 +51,9 @@ pipeline {
                 sshUserPrivateKey(credentialsId: 'ansible-ssh-key', keyFileVariable: 'SSH_KEY')
               ]) {
                 withEnv([
-                  "TF_VAR_pm_api_token_id=root@pam!terraform1",
-                  "TF_VAR_pm_api_token_secret=${PM_SECRET}",
-                  "TF_VAR_ssh_private_key_path=${SSH_KEY}"
+                  'TF_VAR_pm_api_token_id=root@pam!terraform1',
+                  'TF_VAR_pm_api_token_secret=' + PM_SECRET,
+                  'TF_VAR_ssh_private_key_path=' + SSH_KEY
                 ]) {
                   sh '''
                     echo "SSH key path: ${SSH_KEY}"
