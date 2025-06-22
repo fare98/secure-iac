@@ -22,14 +22,10 @@ pipeline {
 
         stage('Plan') {
             steps {
-                withCredentials([
-                    string(credentialsId: 'proxmox-token', variable: 'PM_SECRET'),
-                    sshUserPrivateKey(credentialsId: 'ansible-ssh-key', keyFileVariable: 'SSH_KEY')
-                ]) {
+                withCredentials([string(credentialsId: 'proxmox-token', variable: 'PM_SECRET')]) {
                     withEnv([
                         'TF_VAR_pm_api_token_id=root@pam!terraform1',
-                        'TF_VAR_pm_api_token_secret=' + PM_SECRET,
-                        'TF_VAR_ssh_private_key_path=' + SSH_KEY
+                        'TF_VAR_pm_api_token_secret=' + PM_SECRET
                     ]) {
                         sh 'make plan'
                     }
@@ -46,24 +42,12 @@ pipeline {
               }
             }
             steps {
-              withCredentials([
-                string(credentialsId: 'proxmox-token', variable: 'PM_SECRET'),
-                sshUserPrivateKey(credentialsId: 'ansible-ssh-key', keyFileVariable: 'SSH_KEY')
-              ]) {
+              withCredentials([string(credentialsId: 'proxmox-token', variable: 'PM_SECRET')]) {
                 withEnv([
                   'TF_VAR_pm_api_token_id=root@pam!terraform1',
-                  'TF_VAR_pm_api_token_secret=' + PM_SECRET,
-                  'TF_VAR_ssh_private_key_path=' + SSH_KEY
+                  'TF_VAR_pm_api_token_secret=' + PM_SECRET
                 ]) {
-                  sh '''
-                    echo "SSH key path: ${SSH_KEY}"
-                    if [ ! -f "${SSH_KEY}" ]; then
-                      echo "ERROR: SSH key file not found at ${SSH_KEY}"
-                      exit 1
-                    fi
-                    echo "SSH key file exists, proceeding with apply..."
-                    make apply || (cd terraform && terraform init && cd .. && make apply)
-                  '''
+                  sh 'make apply || (cd terraform && terraform init && cd .. && make apply)'
                 }
               }
             }
@@ -84,9 +68,9 @@ pipeline {
                   export ANSIBLE_HOST_KEY_CHECKING=False
                   export ANSIBLE_PRIVATE_KEY_FILE="${SSH_KEY}"
                   
-                  # Wait for VMs to be ready
-                  echo "Waiting for VMs to be ready..."
-                  sleep 30
+                  # Wait for VMs to be ready and cloud-init to complete
+                  echo "Waiting for VMs to be ready and cloud-init to complete..."
+                  sleep 60
                   
                   # Run Ansible playbook with dynamic inventory
                   ansible-playbook -i inventories/hosts_dynamic.yml site.yml

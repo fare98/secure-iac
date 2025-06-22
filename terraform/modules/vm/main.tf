@@ -51,19 +51,6 @@ resource "proxmox_vm_qemu" "this" {
     ignore_changes = [disk[1]]
   }
 
-  # Connection settings for provisioners
-  connection {
-    type        = "ssh"
-    user        = var.cloud_init_user
-    private_key = file(var.ssh_private_key)
-    host        = self.default_ipv4_address
-    timeout     = "5m"
-  }
-
-  # Wait for cloud-init to finish
-  provisioner "remote-exec" {
-    inline = [
-      "cloud-init status --wait"
-    ]
-  }
+  # Note: Connection block removed - cloud-init will handle initial setup
+  # and Ansible will handle post-deployment configuration
 }

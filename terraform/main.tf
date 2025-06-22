@@ -27,7 +27,6 @@ module "vm" {
   
   # SSH keys for cloud-init
   ssh_public_key  = var.ssh_public_key
-  ssh_private_key = var.ssh_private_key_path
 }
 
 # Outputs for Ansible integration
