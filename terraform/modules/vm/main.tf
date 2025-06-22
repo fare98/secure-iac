@@ -17,9 +17,9 @@ resource "proxmox_vm_qemu" "this" {
   nameserver = var.nameserver
   
   # Cloud-init user configuration
-  ciuser    = var.cloud_init_user
-  sshkeys   = var.ssh_public_key
-  cipassword = "temp123!"  # Temporary password for debugging
+  ciuser     = var.cloud_init_user
+  cipassword = "temp123"  # Temporary password for debugging (no special chars)
+  sshkeys    = chomp(var.ssh_public_key)  # Remove any trailing newlines
   
   # Cloud-init will configure the user and SSH keys automatically
 
@@ -35,7 +35,14 @@ resource "proxmox_vm_qemu" "this" {
     type    = "cloudinit"
     storage = "local-lvm"
   }
+  
+  # Force cloud-init to regenerate on clone
+  cicustom = ""
+  
+  # VM settings
   onboot = true
+  tablet = false
+  boot   = "order=scsi0"
 
   lifecycle {
     ignore_changes = [disk]
