@@ -55,8 +55,9 @@ resource "proxmox_vm_qemu" "this" {
   connection {
     type        = "ssh"
     user        = var.cloud_init_user
-    private_key = var.ssh_private_key
-    host        = "${var.vm_ip_base}.${var.vm_ip_offset + count.index}"
+    private_key = file(var.ssh_private_key)
+    host        = self.default_ipv4_address
+    timeout     = "5m"
   }
 
   # Wait for cloud-init to finish
