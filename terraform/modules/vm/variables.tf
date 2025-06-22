@@ -33,7 +33,7 @@ variable "nameserver" {
 variable "cloud_init_user" {
   description = "Default user for cloud-init"
   type        = string
-  default     = "ansible"
+  default     = "ubuntu"
 }
 
 variable "ssh_public_key" {

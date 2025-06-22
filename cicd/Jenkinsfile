@@ -72,12 +72,32 @@ pipeline {
                   echo "Waiting for VMs to be ready and cloud-init to complete..."
                   sleep 120
                   
-                  # Test SSH connectivity first
-                  echo "Testing SSH connectivity..."
+                  # Debug VM status first
+                  echo "=== DEBUGGING VM STATUS ==="
+                  echo "VM IP: 192.168.178.50"
+                  echo "Testing basic connectivity..."
+                  ping -c 3 192.168.178.50 || echo "VM not responding to ping"
+                  
+                  echo "Testing if SSH port is open..."
+                  nc -zv 192.168.178.50 22 || echo "SSH port not accessible"
+                  
+                  echo "Trying SSH as root first (to check cloud-init)..."
+                  ssh -i "${SSH_KEY}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 root@192.168.178.50 "whoami; cloud-init status" || echo "Root SSH failed"
+                  
+                  echo "Trying SSH as ubuntu user..."
+                  ssh -i "${SSH_KEY}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 ubuntu@192.168.178.50 "whoami" || echo "Ubuntu user SSH failed"
+                  
+                  echo "Trying SSH as ansible user..."
+                  ssh -i "${SSH_KEY}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 ansible@192.168.178.50 "whoami" || echo "Ansible user SSH failed"
+                  
+                  # Test SSH connectivity with Ansible
+                  echo "Testing SSH connectivity with Ansible..."
                   ansible all -i inventories/hosts_dynamic.yml -m ping --timeout=30 || {
-                    echo "SSH test failed, checking cloud-init status..."
-                    # Try to check cloud-init status (this might fail if SSH is broken)
-                    ssh -i "${SSH_KEY}" -o StrictHostKeyChecking=no ansible@192.168.178.50 "cloud-init status" || echo "Could not check cloud-init status"
+                    echo "=== SSH test failed ==="
+                    echo "This could mean:"
+                    echo "1. Cloud-init hasn't finished creating the ansible user"
+                    echo "2. SSH keys weren't properly injected"
+                    echo "3. Network connectivity issues"
                     exit 1
                   }
                   
