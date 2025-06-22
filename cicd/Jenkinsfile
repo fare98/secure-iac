@@ -70,7 +70,16 @@ pipeline {
                   
                   # Wait for VMs to be ready and cloud-init to complete
                   echo "Waiting for VMs to be ready and cloud-init to complete..."
-                  sleep 60
+                  sleep 120
+                  
+                  # Test SSH connectivity first
+                  echo "Testing SSH connectivity..."
+                  ansible all -i inventories/hosts_dynamic.yml -m ping --timeout=30 || {
+                    echo "SSH test failed, checking cloud-init status..."
+                    # Try to check cloud-init status (this might fail if SSH is broken)
+                    ssh -i "${SSH_KEY}" -o StrictHostKeyChecking=no ansible@192.168.178.50 "cloud-init status" || echo "Could not check cloud-init status"
+                    exit 1
+                  }
                   
                   # Run Ansible playbook with dynamic inventory
                   ansible-playbook -i inventories/hosts_dynamic.yml site.yml
