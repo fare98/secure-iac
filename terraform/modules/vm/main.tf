@@ -39,6 +39,9 @@ resource "proxmox_vm_qemu" "this" {
   # Force cloud-init to regenerate on clone
   cicustom = ""
   
+  # Ensure cloud-init runs on first boot
+  qemu_os = "l26"
+  
   # VM settings
   onboot = true
   tablet = false
