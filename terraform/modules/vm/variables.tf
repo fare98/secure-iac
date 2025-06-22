@@ -14,7 +14,7 @@ variable "vm_ip_base" {
 variable "vm_ip_offset" {
   description = "Starting IP offset for VMs"
   type        = number
-  default     = 50
+  default     = 100
 }
 
 variable "gateway" {
