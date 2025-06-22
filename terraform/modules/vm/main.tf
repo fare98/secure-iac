@@ -42,7 +42,6 @@ resource "proxmox_vm_qemu" "this" {
   # VM settings
   onboot = true
   tablet = false
-  boot   = "order=scsi0"
 
   lifecycle {
     ignore_changes = [disk]
