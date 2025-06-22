@@ -84,8 +84,11 @@ pipeline {
                   echo "Trying SSH as root first (to check cloud-init)..."
                   ssh -i "${SSH_KEY}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 root@192.168.178.50 "whoami; cloud-init status" || echo "Root SSH failed"
                   
-                  echo "Trying SSH as ubuntu user..."
-                  ssh -i "${SSH_KEY}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 ubuntu@192.168.178.50 "whoami" || echo "Ubuntu user SSH failed"
+                  echo "Trying SSH as ubuntu user with key..."
+                  ssh -i "${SSH_KEY}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 ubuntu@192.168.178.50 "whoami" || echo "Ubuntu user SSH with key failed"
+                  
+                  echo "Trying SSH as ubuntu user with password (temp123!)..."
+                  sshpass -p 'temp123!' ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 ubuntu@192.168.178.50 "whoami; cloud-init status; cat /var/log/cloud-init.log | tail -20" || echo "Ubuntu user SSH with password failed"
                   
                   echo "Trying SSH as ansible user..."
                   ssh -i "${SSH_KEY}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 ansible@192.168.178.50 "whoami" || echo "Ansible user SSH failed"

@@ -17,8 +17,9 @@ resource "proxmox_vm_qemu" "this" {
   nameserver = var.nameserver
   
   # Cloud-init user configuration
-  ciuser  = var.cloud_init_user
-  sshkeys = var.ssh_public_key
+  ciuser    = var.cloud_init_user
+  sshkeys   = var.ssh_public_key
+  cipassword = "temp123!"  # Temporary password for debugging
   
   # Cloud-init will configure the user and SSH keys automatically
 
