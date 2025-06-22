@@ -39,9 +39,10 @@ resource "proxmox_vm_qemu" "this" {
   boot = "order=scsi0"
   onboot = true
 
-  # Ignore changes to the cloud-init disk
+  # Force replacement when cloud-init user changes
   lifecycle {
     ignore_changes = [disk]
+    create_before_destroy = true
   }
 
   # Note: Connection block removed - cloud-init will handle initial setup
