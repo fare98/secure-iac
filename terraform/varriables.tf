@@ -23,5 +23,4 @@ variable "ssh_public_key" {
 variable "ssh_private_key_path" {
   description = "Path to SSH private key for Terraform provisioners"
   type        = string
-  default     = "~/.ssh/id_rsa"
 }

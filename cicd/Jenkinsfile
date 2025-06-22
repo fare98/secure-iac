@@ -51,7 +51,15 @@ pipeline {
                   "TF_VAR_pm_api_token_secret=${PM_SECRET}",
                   "TF_VAR_ssh_private_key_path=${SSH_KEY}"
                 ]) {
-                  sh 'make apply || (cd terraform && terraform init && cd .. && make apply)'
+                  sh '''
+                    echo "SSH key path: ${SSH_KEY}"
+                    if [ ! -f "${SSH_KEY}" ]; then
+                      echo "ERROR: SSH key file not found at ${SSH_KEY}"
+                      exit 1
+                    fi
+                    echo "SSH key file exists, proceeding with apply..."
+                    make apply || (cd terraform && terraform init && cd .. && make apply)
+                  '''
                 }
               }
             }
