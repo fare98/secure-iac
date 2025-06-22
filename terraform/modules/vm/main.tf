@@ -29,21 +29,16 @@ resource "proxmox_vm_qemu" "this" {
     bridge = "vmbr0"
   }
 
-  # Cloud-init drive (main disk comes from template)
+  # Cloud-init drive
   disk {
     slot    = "ide2"
     type    = "cloudinit"
     storage = "local-lvm"
   }
-
-  # Ensure VM starts after creation
-  boot = "order=scsi0"
   onboot = true
 
-  # Force replacement when cloud-init user changes
   lifecycle {
     ignore_changes = [disk]
-    create_before_destroy = true
   }
 
   # Note: Connection block removed - cloud-init will handle initial setup
