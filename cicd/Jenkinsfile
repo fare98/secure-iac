@@ -72,26 +72,30 @@ pipeline {
                   echo "Waiting for VMs to be ready and cloud-init to complete..."
                   sleep 120
                   
-                  # Debug VM status first
-                  echo "=== DEBUGGING VM STATUS ==="
-                  echo "VM IP: 192.168.178.50"
-                  echo "Testing basic connectivity..."
-                  ping -c 3 192.168.178.50 || echo "VM not responding to ping"
-                  
-                  echo "Testing if SSH port is open..."
-                  nc -zv 192.168.178.50 22 || echo "SSH port not accessible"
-                  
-                  echo "Trying SSH as root first (to check cloud-init)..."
-                  ssh -i "${SSH_KEY}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 root@192.168.178.50 "whoami; cloud-init status" || echo "Root SSH failed"
-                  
-                  echo "Trying SSH as ubuntu user with key..."
-                  ssh -i "${SSH_KEY}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 ubuntu@192.168.178.50 "whoami" || echo "Ubuntu user SSH with key failed"
-                  
-                  echo "Trying SSH as ubuntu user with password (temp123!)..."
-                  sshpass -p 'temp123!' ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 ubuntu@192.168.178.50 "whoami; cloud-init status; cat /var/log/cloud-init.log | tail -20" || echo "Ubuntu user SSH with password failed"
-                  
-                  echo "Trying SSH as ansible user..."
-                  ssh -i "${SSH_KEY}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 ansible@192.168.178.50 "whoami" || echo "Ansible user SSH failed"
+                  # Obtain VM IPs from Terraform output
+                  VM_IPS=$(cd ../terraform && terraform output -json vm_ips | jq -r '.[]')
+
+                  # Debug each VM's status
+                  for IP in $VM_IPS; do
+                    echo "=== DEBUGGING VM STATUS: $IP ==="
+                    echo "Testing basic connectivity..."
+                    ping -c 3 $IP || echo "VM not responding to ping"
+
+                    echo "Testing if SSH port is open..."
+                    nc -zv $IP 22 || echo "SSH port not accessible"
+
+                    echo "Trying SSH as root first (to check cloud-init)..."
+                    ssh -i "${SSH_KEY}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 root@$IP "whoami; cloud-init status" || echo "Root SSH failed"
+
+                    echo "Trying SSH as ubuntu user with key..."
+                    ssh -i "${SSH_KEY}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 ubuntu@$IP "whoami" || echo "Ubuntu user SSH with key failed"
+
+                    echo "Trying SSH as ubuntu user with password (temp123!)..."
+                    sshpass -p 'temp123!' ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 ubuntu@$IP "whoami; cloud-init status; cat /var/log/cloud-init.log | tail -20" || echo "Ubuntu user SSH with password failed"
+
+                    echo "Trying SSH as ansible user..."
+                    ssh -i "${SSH_KEY}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 ansible@$IP "whoami" || echo "Ansible user SSH failed"
+                  done
                   
                   # Test SSH connectivity with Ansible
                   echo "Testing SSH connectivity with Ansible..."
