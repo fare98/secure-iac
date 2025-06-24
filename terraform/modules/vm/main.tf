@@ -3,6 +3,8 @@ resource "proxmox_vm_qemu" "this" {
   name        = "idp-${count.index + 1}"
   target_node = var.proxmox_node
   clone       = var.vm_template
+  full_clone  = true  # Ensure full clone for proper cloud-init
+  clone_wait  = 30    # Wait for clone to complete
 
   cores   = var.vm_cpu
   sockets = 1
@@ -10,10 +12,11 @@ resource "proxmox_vm_qemu" "this" {
 
   # Enable QEMU Guest Agent for better VM management
   agent = 1
+  agent_timeout = 90  # Wait up to 90 seconds for guest agent
 
   # Cloud-init settings
   os_type   = "cloud-init"
-  ipconfig0 = "ip=${var.vm_ip_base}.${var.vm_ip_offset + count.index}/24,gw=${var.gateway}"
+  ipconfig0 = "ip=dhcp"  # Use DHCP for automatic IP assignment
   nameserver = var.nameserver
   
   # Cloud-init user configuration
@@ -36,8 +39,8 @@ resource "proxmox_vm_qemu" "this" {
     storage = "local-lvm"
   }
   
-  # Force cloud-init to regenerate on clone
-  cicustom = ""
+  # Add custom cloud-init configuration for debugging
+  # cicustom = "user=local:snippets/cloud-init-debug.yml"
   
   # Ensure cloud-init runs on first boot
   qemu_os = "l26"
@@ -45,6 +48,13 @@ resource "proxmox_vm_qemu" "this" {
   # VM settings
   onboot = true
   tablet = false
+  boot = "order=scsi0;ide2;net0"  # Boot order: disk, cloud-init, network
+  
+  # Ensure VM is running
+  vm_state = "running"
+  
+  # Allow provider to define connection info from QEMU guest agent
+  define_connection_info = true
 
   lifecycle {
     ignore_changes = [disk]

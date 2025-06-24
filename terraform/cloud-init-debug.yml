@@ -1,0 +1,30 @@
+#cloud-config
+# This file adds debugging to cloud-init to help troubleshoot network issues
+
+runcmd:
+  # Log network information after boot
+  - echo "=== CLOUD-INIT DEBUG START ===" >> /var/log/cloud-init-debug.log
+  - date >> /var/log/cloud-init-debug.log
+  - echo "Network interfaces:" >> /var/log/cloud-init-debug.log
+  - ip addr show >> /var/log/cloud-init-debug.log
+  - echo "Routes:" >> /var/log/cloud-init-debug.log
+  - ip route show >> /var/log/cloud-init-debug.log
+  - echo "DNS resolution:" >> /var/log/cloud-init-debug.log
+  - cat /etc/resolv.conf >> /var/log/cloud-init-debug.log
+  - echo "DHCP leases:" >> /var/log/cloud-init-debug.log
+  - ls -la /var/lib/dhcp/ >> /var/log/cloud-init-debug.log 2>&1
+  - echo "Cloud-init status:" >> /var/log/cloud-init-debug.log
+  - cloud-init status --long >> /var/log/cloud-init-debug.log
+  - echo "=== CLOUD-INIT DEBUG END ===" >> /var/log/cloud-init-debug.log
+  # Install qemu-guest-agent if not present
+  - apt-get update
+  - apt-get install -y qemu-guest-agent
+  - systemctl start qemu-guest-agent
+  - systemctl enable qemu-guest-agent
+
+# Make sure qemu-guest-agent is installed
+packages:
+  - qemu-guest-agent
+
+# Log final message
+final_message: "Cloud-init completed at $TIMESTAMP after $UPTIME seconds"

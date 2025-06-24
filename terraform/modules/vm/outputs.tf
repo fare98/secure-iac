@@ -8,19 +8,19 @@ output "vm_ids" {
 }
 
 output "vm_ips" {
-  description = "IP addresses of created VMs"
+  description = "IP addresses of created VMs retrieved from QEMU Guest Agent"
   value = [
-    for i in range(var.vm_count) : 
-    "${var.vm_ip_base}.${var.vm_ip_offset + i}"
+    for vm in proxmox_vm_qemu.this : 
+    vm.default_ipv4_address
   ]
 }
 
 output "ansible_inventory" {
   description = "Ansible inventory configuration"
   value = {
-    for i in range(var.vm_count) : 
-    proxmox_vm_qemu.this[i].name => {
-      ansible_host = "${var.vm_ip_base}.${var.vm_ip_offset + i}"
+    for vm in proxmox_vm_qemu.this : 
+    vm.name => {
+      ansible_host = vm.default_ipv4_address
       ansible_user = var.cloud_init_user
     }
   }

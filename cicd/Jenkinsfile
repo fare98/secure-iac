@@ -70,10 +70,27 @@ pipeline {
                   
                   # Wait for VMs to be ready and cloud-init to complete
                   echo "Waiting for VMs to be ready and cloud-init to complete..."
-                  sleep 120
+                  echo "Since we're using DHCP, VMs need extra time to get IPs from DHCP server..."
+                  sleep 180  # Increased wait time for DHCP assignment
                   
-                  # Obtain VM IPs from Terraform output
-                  VM_IPS=$(cd ../terraform && terraform output -json vm_ips | jq -r '.[]')
+                  # Obtain VM IPs from Terraform output (with retry logic)
+                  echo "Retrieving VM IPs from Terraform state..."
+                  cd ../terraform
+                  
+                  # Refresh Terraform state to get latest IPs from QEMU Guest Agent
+                  terraform refresh
+                  
+                  VM_IPS=$(terraform output -json vm_ips | jq -r '.[]')
+                  
+                  # Check if we got valid IPs
+                  if [ -z "$VM_IPS" ] || echo "$VM_IPS" | grep -q "null"; then
+                    echo "WARNING: No IPs retrieved yet. Waiting additional 60 seconds..."
+                    sleep 60
+                    terraform refresh
+                    VM_IPS=$(terraform output -json vm_ips | jq -r '.[]')
+                  fi
+                  
+                  cd ../ansible
 
                   # Debug each VM's status
                   for IP in $VM_IPS; do
@@ -90,8 +107,8 @@ pipeline {
                     echo "Trying SSH as ubuntu user with key..."
                     ssh -i "${SSH_KEY}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 ubuntu@$IP "whoami" || echo "Ubuntu user SSH with key failed"
 
-                    echo "Trying SSH as ubuntu user with password (temp123!)..."
-                    sshpass -p 'temp123!' ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 ubuntu@$IP "whoami; cloud-init status; cat /var/log/cloud-init.log | tail -20" || echo "Ubuntu user SSH with password failed"
+                    echo "Trying SSH as ubuntu user with password (temp123)..."
+                    sshpass -p 'temp123' ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 ubuntu@$IP "whoami; cloud-init status; cat /var/log/cloud-init.log | tail -20" || echo "Ubuntu user SSH with password failed"
 
                     echo "Trying SSH as ansible user..."
                     ssh -i "${SSH_KEY}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 ansible@$IP "whoami" || echo "Ansible user SSH failed"
