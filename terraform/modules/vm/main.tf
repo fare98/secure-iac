@@ -12,8 +12,8 @@ resource "proxmox_vm_qemu" "this" {
 
   # Enable QEMU Guest Agent for better VM management
   agent = 1
-  # Don't wait for agent during creation - we'll handle this in Jenkins
-  agent_timeout = 0
+  # Set a short timeout - we'll handle waiting in Jenkins
+  agent_timeout = 15
 
   # Cloud-init settings
   os_type   = "cloud-init"
