@@ -12,7 +12,8 @@ resource "proxmox_vm_qemu" "this" {
 
   # Enable QEMU Guest Agent for better VM management
   agent = 1
-  agent_timeout = 90  # Wait up to 90 seconds for guest agent
+  # Don't wait for agent during creation - we'll handle this in Jenkins
+  agent_timeout = 0
 
   # Cloud-init settings
   os_type   = "cloud-init"
@@ -39,8 +40,7 @@ resource "proxmox_vm_qemu" "this" {
     storage = "local-lvm"
   }
   
-  # Add custom cloud-init configuration for debugging
-  # cicustom = "user=local:snippets/cloud-init-debug.yml"
+  # Remove custom cloud-init for now - Ubuntu cloud images should have guest agent
   
   # Ensure cloud-init runs on first boot
   qemu_os = "l26"
@@ -60,6 +60,8 @@ resource "proxmox_vm_qemu" "this" {
     ignore_changes = [disk]
   }
 
-  # Note: Connection block removed - cloud-init will handle initial setup
-  # and Ansible will handle post-deployment configuration
+  # Add a null resource to wait for the VM to be fully ready
+  provisioner "local-exec" {
+    command = "sleep 30"  # Give VM time to boot and start services
+  }
 }
