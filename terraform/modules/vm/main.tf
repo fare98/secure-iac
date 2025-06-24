@@ -48,7 +48,7 @@ resource "proxmox_vm_qemu" "this" {
   # VM settings
   onboot = true
   tablet = false
-  boot = "order=scsi0;ide2;net0"  # Boot order: disk, cloud-init, network
+  # boot = "order=scsi0;ide2;net0"  # Removed - let Proxmox handle boot order
   
   # Ensure VM is running
   vm_state = "running"
