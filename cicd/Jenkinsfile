@@ -62,8 +62,7 @@ pipeline {
             steps {
               withCredentials([
                 sshUserPrivateKey(credentialsId: 'ansible-ssh-key', keyFileVariable: 'SSH_KEY'),
-                string(credentialsId: 'proxmox-token-id', variable: 'PM_USER'),
-                string(credentialsId: 'proxmox-token-secret', variable: 'PM_SECRET')
+                string(credentialsId: 'proxmox-token', variable: 'PM_SECRET')
               ]) {
                 sh '''
                   cd ansible
@@ -72,35 +71,11 @@ pipeline {
                   
                   # Wait for VMs to be ready and cloud-init to complete
                   echo "Waiting for VMs to be ready and cloud-init to complete..."
-                  echo "Since we're using DHCP, VMs need extra time to get IPs from DHCP server..."
-                  echo "Also waiting for QEMU Guest Agent to start and report IP..."
-                  sleep 240  # Increased wait time for DHCP assignment and guest agent startup
+                  sleep 120  # Wait for cloud-init to complete
                   
-                  # Obtain VM IPs from Terraform output (with retry logic)
+                  # Obtain VM IPs from Terraform output
                   echo "Retrieving VM IPs from Terraform state..."
-                  cd ../terraform
-                  
-                  # Refresh Terraform state to get latest IPs from QEMU Guest Agent
-                  TF_VAR_pm_api_token_id="${PM_USER}" TF_VAR_pm_api_token_secret="${PM_SECRET}" terraform refresh
-                  
-                  VM_IPS=$(terraform output -json vm_ips | jq -r '.[]')
-                  
-                  # Check if we got valid IPs
-                  if [ -z "$VM_IPS" ] || echo "$VM_IPS" | grep -q "null" || [ "$VM_IPS" = "" ]; then
-                    echo "WARNING: No IPs retrieved yet. Waiting additional 60 seconds..."
-                    sleep 60
-                    TF_VAR_pm_api_token_id="${PM_USER}" TF_VAR_pm_api_token_secret="${PM_SECRET}" terraform refresh
-                    VM_IPS=$(terraform output -json vm_ips | jq -r '.[]')
-                    
-                    # Final check
-                    if [ -z "$VM_IPS" ] || echo "$VM_IPS" | grep -q "null" || [ "$VM_IPS" = "" ]; then
-                      echo "ERROR: Still no IPs after retry. QEMU Guest Agent may not be running."
-                      echo "Check if the VM template has qemu-guest-agent installed."
-                      exit 1
-                    fi
-                  fi
-                  
-                  cd ../ansible
+                  VM_IPS=$(cd ../terraform && terraform output -json vm_ips | jq -r '.[]')
 
                   # Debug each VM's status
                   for IP in $VM_IPS; do

@@ -10,14 +10,12 @@ resource "proxmox_vm_qemu" "this" {
   sockets = 1
   memory  = var.vm_memory_mb
 
-  # Enable QEMU Guest Agent for better VM management
-  agent = 1
-  # Set a short timeout - we'll handle waiting in Jenkins
-  agent_timeout = 15
+  # Disable QEMU Guest Agent for now - using static IPs
+  agent = 0
 
   # Cloud-init settings
   os_type   = "cloud-init"
-  ipconfig0 = "ip=dhcp"  # Use DHCP for automatic IP assignment
+  ipconfig0 = "ip=${var.vm_ip_base}.${var.vm_ip_offset + count.index}/24,gw=${var.gateway}"
   nameserver = var.nameserver
   
   # Cloud-init user configuration
@@ -53,8 +51,8 @@ resource "proxmox_vm_qemu" "this" {
   # Ensure VM is running
   vm_state = "running"
   
-  # Allow provider to define connection info from QEMU guest agent
-  define_connection_info = true
+  # Use static connection info
+  define_connection_info = false
 
   lifecycle {
     ignore_changes = [disk]
