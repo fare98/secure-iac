@@ -33,6 +33,33 @@ pipeline {
             }
         }
 
+        stage('OPA Policy Check') {
+            steps {
+                sh '''
+                    cd terraform
+                    echo "Running OPA policy validation..."
+                    
+                    # Convert terraform plan to JSON
+                    terraform show -json plan.tfplan > plan.json
+                    
+                    # Run OPA evaluation against the plan
+                    if opa eval -d ../terraform/opa-policies/terraform.rego -i plan.json "data.terraform.deny[msg]" | grep -q '"msg"'; then
+                        echo "OPA Policy Violations Found:"
+                        opa eval -d ../terraform/opa-policies/terraform.rego -i plan.json "data.terraform.deny[msg]" --format pretty
+                        exit 1
+                    else
+                        echo "All OPA policies passed successfully!"
+                    fi
+                    
+                    # Also check for any warnings
+                    if opa eval -d ../terraform/opa-policies/terraform.rego -i plan.json "data.terraform.warn[msg]" | grep -q '"msg"'; then
+                        echo "OPA Policy Warnings:"
+                        opa eval -d ../terraform/opa-policies/terraform.rego -i plan.json "data.terraform.warn[msg]" --format pretty
+                    fi
+                '''
+            }
+        }
+
         stage('Apply') {
             when {
               expression {
