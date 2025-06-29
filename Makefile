@@ -5,7 +5,7 @@ TF_DIR := terraform          # single IaC directory
 lint:
 	tflint --init && tflint
 	tfsec $(TF_DIR)
-	checkov -d $(TF_DIR)
+	checkov -d $(TF_DIR) --external-checks-dir security/checkov-policies
 
 plan: lint
 	cd $(TF_DIR) && terraform init -upgrade && terraform plan -refresh=false -out=plan.tfplan

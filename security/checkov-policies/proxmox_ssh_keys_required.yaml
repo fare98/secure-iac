@@ -1,0 +1,13 @@
+---
+metadata:
+  id: "CKV2_PROXMOX_3"
+  name: "Ensure Proxmox VMs have SSH keys configured"
+  category: "ACCESS_CONTROL"
+  severity: "HIGH"
+  guideline: "VMs should use SSH key authentication instead of password authentication for better security"
+definition:
+  cond_type: "attribute"
+  resource_types:
+    - "proxmox_vm_qemu"
+  attribute: "sshkeys"
+  operator: "exists"
