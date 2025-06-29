@@ -44,11 +44,13 @@ pipeline {
                     echo "Running OPA policy validation..."
                     
                     # Check if OPA is properly installed
-                    if ! command -v opa &> /dev/null; then
+                    if ! command -v opa >/dev/null 2>&1; then
                         echo "WARNING: OPA is not installed or not in PATH"
                         echo "Skipping OPA policy validation"
                         exit 0
                     fi
+                    
+                    echo "OPA found at: $(command -v opa)"
                     
                     # Test OPA is working
                     if ! opa version &> /dev/null; then
