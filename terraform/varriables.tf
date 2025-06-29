@@ -19,3 +19,12 @@ variable "ssh_public_key" {
   description = "SSH public key to inject into VMs via cloud-init"
   type        = string
 }
+
+#############################
+# CLOUD-INIT PASSWORD
+#############################
+variable "cloud_init_password" {
+  description = "Password for cloud-init user"
+  type        = string
+  sensitive   = true
+}

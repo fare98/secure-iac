@@ -40,3 +40,9 @@ variable "ssh_public_key" {
   description = "SSH public key for cloud-init user"
   type        = string
 }
+
+variable "cloud_init_password" {
+  description = "Password for cloud-init user"
+  type        = string
+  sensitive   = true
+}

@@ -20,7 +20,7 @@ resource "proxmox_vm_qemu" "this" {
   
   # Cloud-init user configuration
   ciuser     = var.cloud_init_user
-  cipassword = "temp123"  # Temporary password for debugging (no special chars)
+  cipassword = var.cloud_init_password
   sshkeys    = chomp(var.ssh_public_key)  # Remove any trailing newlines
   
   # Cloud-init will configure the user and SSH keys automatically
@@ -46,6 +46,7 @@ resource "proxmox_vm_qemu" "this" {
   # VM settings
   onboot = true
   tablet = false
+  protection = true  # Prevent accidental deletion
   # boot = "order=scsi0;ide2;net0"  # Removed - let Proxmox handle boot order
   
   # Ensure VM is running

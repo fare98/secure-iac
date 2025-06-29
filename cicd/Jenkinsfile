@@ -22,10 +22,14 @@ pipeline {
 
         stage('Plan') {
             steps {
-                withCredentials([string(credentialsId: 'proxmox-token', variable: 'PM_SECRET')]) {
+                withCredentials([
+                    string(credentialsId: 'proxmox-token', variable: 'PM_SECRET'),
+                    string(credentialsId: 'vm-password', variable: 'VM_PASSWORD')
+                ]) {
                     withEnv([
                         'TF_VAR_pm_api_token_id=root@pam!terraform1',
-                        'TF_VAR_pm_api_token_secret=' + PM_SECRET
+                        'TF_VAR_pm_api_token_secret=' + PM_SECRET,
+                        'TF_VAR_cloud_init_password=' + VM_PASSWORD
                     ]) {
                         sh 'make plan'
                     }
@@ -69,10 +73,14 @@ pipeline {
               }
             }
             steps {
-              withCredentials([string(credentialsId: 'proxmox-token', variable: 'PM_SECRET')]) {
+              withCredentials([
+                string(credentialsId: 'proxmox-token', variable: 'PM_SECRET'),
+                string(credentialsId: 'vm-password', variable: 'VM_PASSWORD')
+              ]) {
                 withEnv([
                   'TF_VAR_pm_api_token_id=root@pam!terraform1',
-                  'TF_VAR_pm_api_token_secret=' + PM_SECRET
+                  'TF_VAR_pm_api_token_secret=' + PM_SECRET,
+                  'TF_VAR_cloud_init_password=' + VM_PASSWORD
                 ]) {
                   sh 'make apply || (cd terraform && terraform init && cd .. && make apply)'
                 }

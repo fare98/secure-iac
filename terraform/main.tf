@@ -27,6 +27,9 @@ module "vm" {
   
   # SSH keys for cloud-init
   ssh_public_key  = var.ssh_public_key
+  
+  # Cloud-init password from Jenkins
+  cloud_init_password = var.cloud_init_password
 }
 
 # Outputs for Ansible integration
