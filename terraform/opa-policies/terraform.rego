@@ -1,7 +1,7 @@
 package terraform.analysis
 
 # CPU limits - prevent excessive resource allocation
-deny[msg] {
+deny contains msg if {
   resource := input.resource_changes[_]
   resource.type == "proxmox_vm_qemu"
   resource.change.after.cores > 8
@@ -9,7 +9,7 @@ deny[msg] {
 }
 
 # Memory limits - prevent excessive memory allocation (max 16GB)
-deny[msg] {
+deny contains msg if {
   resource := input.resource_changes[_]
   resource.type == "proxmox_vm_qemu"
   resource.change.after.memory > 16384
@@ -17,14 +17,14 @@ deny[msg] {
 }
 
 # Minimum resources - ensure VMs have adequate resources
-deny[msg] {
+deny contains msg if {
   resource := input.resource_changes[_]
   resource.type == "proxmox_vm_qemu"
   resource.change.after.cores < 1
   msg = sprintf("VM '%s' must have at least 1 core", [resource.name])
 }
 
-deny[msg] {
+deny contains msg if {
   resource := input.resource_changes[_]
   resource.type == "proxmox_vm_qemu"
   resource.change.after.memory < 512
@@ -32,7 +32,7 @@ deny[msg] {
 }
 
 # VM count limit - prevent accidental mass provisioning
-deny[msg] {
+deny contains msg if {
   vm_count := count([1 | 
     resource := input.resource_changes[_]
     resource.type == "proxmox_vm_qemu"
@@ -43,7 +43,7 @@ deny[msg] {
 }
 
 # Disk size validation - ensure reasonable disk sizes
-deny[msg] {
+deny contains msg if {
   resource := input.resource_changes[_]
   resource.type == "proxmox_vm_qemu"
   disk := resource.change.after.disk[_]
@@ -53,7 +53,7 @@ deny[msg] {
 }
 
 # Network validation - ensure VMs use approved bridges
-deny[msg] {
+deny contains msg if {
   resource := input.resource_changes[_]
   resource.type == "proxmox_vm_qemu"
   network := resource.change.after.network[_]
@@ -62,10 +62,10 @@ deny[msg] {
 }
 
 # Template validation - ensure only approved templates are used
-deny[msg] {
+deny contains msg if {
   resource := input.resource_changes[_]
   resource.type == "proxmox_vm_qemu"
   clone_template := resource.change.after.clone
-  not clone_template in ["server", "ubuntu-22.04-template", "debian-12-template", "rocky-9-template"]
-  msg = sprintf("VM '%s' uses template '%s', but only approved templates are allowed: server, ubuntu-22.04-template, debian-12-template, rocky-9-template", [resource.name, clone_template])
+  not clone_template in ["ubuntu-cloud", "server", "ubuntu-22.04-template", "debian-12-template", "rocky-9-template"]
+  msg = sprintf("VM '%s' uses template '%s', but only approved templates are allowed: ubuntu-cloud, server, ubuntu-22.04-template, debian-12-template, rocky-9-template", [resource.name, clone_template])
 } 
