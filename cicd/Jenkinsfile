@@ -53,11 +53,13 @@ pipeline {
                     echo "OPA found at: $(command -v opa)"
                     
                     # Test OPA is working
-                    if ! opa version &> /dev/null; then
+                    if ! opa version >/dev/null 2>&1; then
                         echo "WARNING: OPA binary exists but is not working properly"
                         echo "Skipping OPA policy validation"
                         exit 0
                     fi
+                    
+                    echo "OPA is working correctly - proceeding with policy validation"
                     
                     # Convert terraform plan to JSON
                     terraform show -json plan.tfplan > plan.json
