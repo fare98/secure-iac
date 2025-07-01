@@ -164,7 +164,7 @@ pipeline {
                   
                   # Test SSH connectivity with Ansible
                   echo "Testing SSH connectivity with Ansible..."
-                  ansible all -i inventories/hosts_dynamic.yml -m ping --timeout=30 || {
+                  ansible all -i inventories/hosts.yml -m ping --timeout=30 || {
                     echo "=== SSH test failed ==="
                     echo "This could mean:"
                     echo "1. Cloud-init hasn't finished creating the ansible user"

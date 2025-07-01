@@ -21,7 +21,7 @@ resource "proxmox_vm_qemu" "this" {
   # Cloud-init user configuration
   ciuser     = var.cloud_init_user
   cipassword = var.cloud_init_password
-  sshkeys    = chomp(var.ssh_public_key)  # Remove any trailing newlines
+  sshkeys    = chomp(var.ssh_public_key)  
   
   # Cloud-init will configure the user and SSH keys automatically
 
@@ -61,6 +61,6 @@ resource "proxmox_vm_qemu" "this" {
 
   # Add a null resource to wait for the VM to be fully ready
   provisioner "local-exec" {
-    command = "sleep 30"  # Give VM time to boot and start services
+    command = "sleep 120"  # Give VM time to boot and start services
   }
 }
