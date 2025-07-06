@@ -420,6 +420,54 @@ Validates Terraform plan against policies:
 - SSH keys for all authentication
 - API tokens for Proxmox access
 
+## Current VM Configuration (Working PoC)
+
+### VM Naming and IP Assignment
+The project is currently configured for **static IP assignment** as a working Proof of Concept. VMs are created with:
+
+- **VM Names**: Fixed pattern `idp-1`, `idp-2`, `idp-3`, etc.
+- **Static IPs**: Sequential assignment starting from `192.168.178.100`
+  - idp-1: 192.168.178.100
+  - idp-2: 192.168.178.101
+  - idp-3: 192.168.178.102
+  - And so on...
+
+### Why Static IPs?
+During development, **DHCP configuration caused issues** with the homelab setup:
+- DHCP lease timing conflicts with cloud-init completion
+- Inconsistent IP assignments breaking Ansible inventory
+- Network connectivity problems during VM boot process
+
+**Static IP configuration provides**:
+- Predictable IP addresses for Ansible automation
+- Reliable network connectivity from pipeline start
+- Consistent VM accessibility across pipeline stages
+- All pipeline stages (Lint → Plan → Apply → Configure) working reliably
+
+### Configuration Details
+The static IP setup is implemented through:
+- `vm_ip_base = "192.168.178"` (configurable in variables)
+- `vm_ip_offset = 100` (starting IP offset)
+- `gateway = "192.168.178.1"`
+- VMs get IPs: `${vm_ip_base}.${vm_ip_offset + count.index}`
+
+This ensures the complete DevSecOps pipeline works end-to-end with reliable VM provisioning and Ansible configuration management.
+
+## Future Improvements
+
+### DHCP Implementation
+Future versions may include DHCP support for more dynamic environments:
+- Better cloud-init timing coordination
+- Improved network interface detection
+- Dynamic inventory management
+- Support for various homelab network configurations
+
+### Enhanced VM Configuration
+- Configurable VM naming patterns
+- Multiple network interface support
+- Advanced cloud-init customization
+- Template-based VM variations
+
 ## Troubleshooting
 
 ### Common Issues
