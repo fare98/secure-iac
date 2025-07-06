@@ -41,8 +41,8 @@ resource "proxmox_vm_qemu" "this" {
     storage  = "local-lvm"
     size     = "30G"
     cache    = "writeback"
-    iothread = 1
-    discard  = "on"
+    iothread = true
+    discard  = true
   }
   
   # Cloud-init drive
