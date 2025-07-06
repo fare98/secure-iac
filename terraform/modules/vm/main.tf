@@ -29,7 +29,7 @@ resource "proxmox_vm_qemu" "this" {
   # Cloud-init
   ###############
   os_type     = "cloud-init"
-  ipconfig0   = "dhcp"
+  ipconfig0   = "ip=dhcp"
   nameserver  = var.nameserver
 
   ciuser      = var.cloud_init_user
@@ -91,8 +91,8 @@ resource "proxmox_vm_qemu" "this" {
     ]
   }
 
-  # Give the VM a minute to finish cloud-init before the next stages run
+  # Give the VM more time to finish cloud-init and get DHCP IP
   provisioner "local-exec" {
-    command = "sleep 60"
+    command = "sleep 120"
   }
 }
