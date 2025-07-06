@@ -35,10 +35,18 @@ resource "proxmox_vm_qemu" "this" {
   ciuser      = var.cloud_init_user
   cipassword  = var.cloud_init_password
   sshkeys     = chomp(var.ssh_public_key) # injected at boot
-
-  # Optional: point at a custom user-data snippet you copied to /var/lib/vz/snippets
-  # cicustom                = "user=local:snippets/user_data_vm-${count.index}.yml"
-  # cloudinit_cdrom_storage = "local-lvm"
+  
+  # Cloud-init user data to install qemu-guest-agent
+  user_data = base64encode(<<-EOF
+#cloud-config
+package_update: true
+packages:
+  - qemu-guest-agent
+runcmd:
+  - systemctl enable qemu-guest-agent
+  - systemctl start qemu-guest-agent
+EOF
+  )
 
   ###############
   # Disks (cloud-init ISO on IDE2, real disk on SCSI0)
