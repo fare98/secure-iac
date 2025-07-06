@@ -3,7 +3,7 @@
 # ───────────────────────────────────────────────────────────────
 resource "proxmox_vm_qemu" "this" {
   count       = var.vm_count
-  name        = "${var.vm_name_prefix}-${count.index + 1}"
+  name        = "idp-${count.index + 1}"
   target_node = var.proxmox_node
   clone       = var.vm_template           # e.g. "ubuntu-cloud"
   full_clone  = true
@@ -29,15 +29,16 @@ resource "proxmox_vm_qemu" "this" {
   # Cloud-init
   ###############
   os_type     = "cloud-init"
-  ipconfig0   = "ip=dhcp"
+  ipconfig0   = "ip=${var.vm_ip_base}.${var.vm_ip_offset + count.index}/24,gw=${var.gateway}"
   nameserver  = var.nameserver
 
   ciuser      = var.cloud_init_user
   cipassword  = var.cloud_init_password
   sshkeys     = chomp(var.ssh_public_key) # injected at boot
 
-  # Use custom user-data snippet for qemu-guest-agent installation
-  cicustom = "user=local:snippets/user_data_vm-${count.index}.yml"
+  # Optional: point at a custom user-data snippet you copied to /var/lib/vz/snippets
+  # cicustom                = "user=local:snippets/user_data_vm-${count.index}.yml"
+  # cloudinit_cdrom_storage = "local-lvm"
 
   ###############
   # Disks (cloud-init ISO on IDE2, real disk on SCSI0)
@@ -90,8 +91,8 @@ resource "proxmox_vm_qemu" "this" {
     ]
   }
 
-  # Give the VM more time to finish cloud-init and get DHCP IP
+  # Give the VM a minute to finish cloud-init before the next stages run
   provisioner "local-exec" {
-    command = "sleep 120"
+    command = "sleep 60"
   }
 }

@@ -1,4 +1,3 @@
-variable "vm_name_prefix"  { type = string }
 variable "vm_count"       { type = number }
 variable "vm_cpu"         { type = number }
 variable "vm_memory_mb"   { type = number }

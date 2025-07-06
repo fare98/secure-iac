@@ -24,7 +24,6 @@ SSH_PUBLIC_KEY=$(cat "${SSH_PUB_KEY_PATH}")
 echo "Found SSH public key at ${SSH_PUB_KEY_PATH}"
 
 # 3. Interactive input
-read -rp "VM Name Prefix?      " VM_NAME_PREFIX
 read -rp "How many VMs?        " VM_COUNT
 read -rp "vCPU per VM?         " VCPU
 read -rp "RAM per VM (MB)?     " RAM
@@ -35,7 +34,6 @@ TFVARS_PATH="${REPO_ROOT}/terraform/terraform.tfvars.json"
 
 cat > "${TFVARS_PATH}" <<EOF
 {
-  "vm_name_prefix" : "${VM_NAME_PREFIX}",
   "vm_count"       : ${VM_COUNT},
   "vm_cpu"         : ${VCPU},
   "vm_memory_mb"   : ${RAM},
@@ -48,7 +46,7 @@ echo "Wrote ${TFVARS_PATH}"
 # 5. Commit & push the tfvars so Jenkins sees this exact set
 cd "${REPO_ROOT}"
 git add terraform/terraform.tfvars.json
-git commit -m "auto(tfvars): ${VM_NAME_PREFIX} ${VM_COUNT}×${VCPU}cpu/${RAM}MB ${OS_TEMPLATE}" \
+git commit -m "auto(tfvars): ${VM_COUNT}×${VCPU}cpu/${RAM}MB ${OS_TEMPLATE}" \
              --author="launcher <auto@local>" || true   # 'true' avoids stopping if nothing changed
 git push
 
