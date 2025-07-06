@@ -38,7 +38,6 @@ resource "proxmox_vm_qemu" "this" {
 
   # Use custom user-data snippet for qemu-guest-agent installation
   cicustom = "user=local:snippets/user_data_vm-${count.index}.yml"
-  cloudinit_cdrom_storage = "local-lvm"
 
   ###############
   # Disks (cloud-init ISO on IDE2, real disk on SCSI0)
