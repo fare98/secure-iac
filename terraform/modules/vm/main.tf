@@ -75,7 +75,7 @@ resource "proxmox_vm_qemu" "this" {
   ###############
   # Console access
   ###############
-  serial {                                # gives you “Console → Serial” in Proxmox
+  serial {                                # gives you "Console → Serial" in Proxmox
     id   = 0
     type = "socket"
   }
@@ -86,7 +86,7 @@ resource "proxmox_vm_qemu" "this" {
   ###############
   lifecycle {
     ignore_changes = [
-      network[0].macaddr,                 # don’t recreate when Proxmox regenerates MAC
+      network[0].macaddr,                 # don't recreate when Proxmox regenerates MAC
     ]
   }
 
