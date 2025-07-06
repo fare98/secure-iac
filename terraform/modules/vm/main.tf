@@ -9,9 +9,12 @@ resource "proxmox_vm_qemu" "this" {
   cores   = var.vm_cpu
   sockets = 1
   memory  = var.vm_memory_mb
+  
+  # SCSI controller configuration
+  scsihw = "virtio-scsi-pci"
 
-  # Disable QEMU Guest Agent for now - using static IPs
-  agent = 0
+  # Enable QEMU Guest Agent for proper VM management
+  agent = 1
 
   # Cloud-init settings
   os_type   = "cloud-init"
@@ -31,6 +34,15 @@ resource "proxmox_vm_qemu" "this" {
     bridge = "vmbr0"
   }
 
+  # Main system disk
+  disk {
+    slot    = "scsi0"
+    type    = "disk"
+    storage = "local-lvm"
+    size    = "10G"
+    cache   = "writeback"
+  }
+  
   # Cloud-init drive
   disk {
     slot    = "ide2"
@@ -47,7 +59,7 @@ resource "proxmox_vm_qemu" "this" {
   onboot = true
   tablet = false
   protection = true  # Prevent accidental deletion
-  # boot = "order=scsi0;ide2;net0"  # Removed - let Proxmox handle boot order
+  boot = "order=scsi0;ide2"
   
   # Ensure VM is running
   vm_state = "running"
@@ -59,6 +71,10 @@ resource "proxmox_vm_qemu" "this" {
     ignore_changes = [disk]
   }
 
+  # Wait for cloud-init to complete
+  additional_wait = 30
+  ciupgrade = true
+  
   # Add a null resource to wait for the VM to be fully ready
   provisioner "local-exec" {
     command = "sleep 120"  # Give VM time to boot and start services
