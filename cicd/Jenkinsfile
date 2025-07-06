@@ -140,6 +140,11 @@ pipeline {
                   echo "Retrieving VM IPs from Terraform state..."
                   VM_IPS=$(cd ../terraform && terraform output -json vm_ips | jq -r '.[]')
 
+                  # Clean Jenkins known_hosts for VMs to avoid host key conflicts
+                  for IP in $VM_IPS; do
+                    ssh-keygen -f "/var/lib/jenkins/.ssh/known_hosts" -R "$IP" 2>/dev/null || true
+                  done
+
                   # Debug each VM's status
                   for IP in $VM_IPS; do
                     echo "=== DEBUGGING VM STATUS: $IP ==="
@@ -149,22 +154,19 @@ pipeline {
                     echo "Testing if SSH port is open..."
                     nc -zv $IP 22 || echo "SSH port not accessible"
 
-                    echo "Trying SSH as root first (to check cloud-init)..."
-                    ssh -i "${SSH_KEY}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 root@$IP "whoami; cloud-init status" || echo "Root SSH failed"
-
                     echo "Trying SSH as ubuntu user with key..."
-                    ssh -i "${SSH_KEY}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 ubuntu@$IP "whoami" || echo "Ubuntu user SSH with key failed"
+                    ssh -i "${SSH_KEY}" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 ubuntu@$IP "whoami" || echo "Ubuntu user SSH with key failed"
 
                     echo "Trying SSH as ubuntu user with password (temp123)..."
                     sshpass -p 'temp123' ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 ubuntu@$IP "whoami; cloud-init status; cat /var/log/cloud-init.log | tail -20" || echo "Ubuntu user SSH with password failed"
 
                     echo "Trying SSH as ansible user..."
-                    ssh -i "${SSH_KEY}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 ansible@$IP "whoami" || echo "Ansible user SSH failed"
+                    ssh -i "${SSH_KEY}" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 ansible@$IP "whoami" || echo "Ansible user SSH failed"
                   done
                   
                   # Test SSH connectivity with Ansible
                   echo "Testing SSH connectivity with Ansible..."
-                  ansible all -i inventories/hosts.yml -m ping --timeout=30 || {
+                  ansible all -i inventories/hosts_dynamic.yml -m ping --timeout=30 || {
                     echo "=== SSH test failed ==="
                     echo "This could mean:"
                     echo "1. Cloud-init hasn't finished creating the ansible user"
