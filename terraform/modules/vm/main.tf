@@ -36,11 +36,13 @@ resource "proxmox_vm_qemu" "this" {
 
   # Main system disk
   disk {
-    slot    = "scsi0"
-    type    = "disk"
-    storage = "local-lvm"
-    size    = "10G"
-    cache   = "writeback"
+    slot     = "scsi0"
+    type     = "disk"
+    storage  = "local-lvm"
+    size     = "30G"
+    cache    = "writeback"
+    iothread = 1
+    discard  = "on"
   }
   
   # Cloud-init drive
@@ -68,7 +70,7 @@ resource "proxmox_vm_qemu" "this" {
   define_connection_info = false
 
   lifecycle {
-    ignore_changes = [disk]
+    ignore_changes = []
   }
 
   # Wait for cloud-init to complete
