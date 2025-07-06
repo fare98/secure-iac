@@ -195,7 +195,7 @@ EOF
 
 # Import SSH key (replace with your key)
 mkdir -p /home/ubuntu/.ssh
-echo "ssh-rsa YOUR_PUBLIC_KEY_HERE ansible@idp" >> /home/ubuntu/.ssh/authorized_keys
+echo "ssh-rsa YOUR_PUBLIC_KEY_HERE ubuntu@idp" >> /home/ubuntu/.ssh/authorized_keys
 chmod 700 /home/ubuntu/.ssh
 chmod 600 /home/ubuntu/.ssh/authorized_keys
 chown -R ubuntu:ubuntu /home/ubuntu/.ssh
@@ -245,7 +245,7 @@ Go to Manage Jenkins → Manage Credentials → System → Global credentials:
 - ID: `ansible-ssh-key`
 - Username: `ubuntu`
 - Private Key: Enter directly (paste contents of `~/.ssh/idp_ansible`)
-- Description: Ansible SSH Key
+- Description: Ubuntu SSH Key
 
 ##### d. GitHub SSH Key
 - Kind: SSH Username with private key
@@ -290,7 +290,7 @@ Edit `terraform/terraform.tfvars.json`:
   "vm_cpu": 2,
   "vm_memory_mb": 2048,
   "vm_template": "ubuntu-cloud",
-  "ssh_public_key": "ssh-rsa AAAA... ansible@idp"
+  "ssh_public_key": "ssh-rsa AAAA... ubuntu@idp"
 }
 ```
 
@@ -347,11 +347,11 @@ secure-iac/
 │   └── opa-policies/         # OPA policy files
 │       └── terraform.rego    # Resource constraints
 ├── ansible/                   # Ansible configuration
-│   ├── ansible.cfg           # Ansible settings
 │   ├── site.yml              # Main playbook
-│   ├── inventories/          # Inventory files
-│   └── roles/                # Ansible roles
-│       └── harden/           # Security hardening role
+│   ├── inventory.yml         # Static inventory file
+│   ├── tasks.yml             # Security hardening tasks
+│   ├── handlers.yml          # Task handlers
+│   └── vars.yml              # Variables
 ├── cicd/                     # CI/CD pipeline
 │   └── Jenkinsfile          # Jenkins pipeline definition
 ├── security/                 # Security policies
@@ -395,8 +395,9 @@ Validates Terraform plan against policies:
 - Generates Ansible inventory
 
 ### 6. Configure VMs Stage (main branch only)
-- Waits for VMs to boot
-- Runs Ansible security hardening
+- Waits for VMs to boot and cloud-init to complete
+- Tests SSH connectivity with ubuntu user
+- Runs Ansible security hardening playbook
 - Configures firewall, SSH, and system settings
 
 ## Security Features
@@ -473,7 +474,7 @@ qm status <vmid>
 cd terraform && terraform state list
 
 # Test Ansible connectivity
-ansible all -i ansible/inventories/hosts_dynamic.yml -m ping
+ansible all -i ansible/hosts_dynamic.yml -m ping
 
 # View cloud-init logs on VM
 sudo cat /var/log/cloud-init.log
