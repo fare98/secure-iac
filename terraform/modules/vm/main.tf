@@ -9,9 +9,6 @@ resource "proxmox_vm_qemu" "this" {
   cores   = var.vm_cpu
   sockets = 1
   memory  = var.vm_memory_mb
-  
-  # SCSI controller configuration
-  scsihw = "virtio-scsi-pci"
 
   # Enable QEMU Guest Agent for proper VM management
   agent = 1
@@ -34,22 +31,26 @@ resource "proxmox_vm_qemu" "this" {
     bridge = "vmbr0"
   }
 
-  # Main system disk
-  disk {
-    slot     = "scsi0"
-    type     = "disk"
-    storage  = "local-lvm"
-    size     = "30G"
-    cache    = "writeback"
-    iothread = true
-    discard  = true
-  }
-  
-  # Cloud-init drive
-  disk {
-    slot    = "ide2"
-    type    = "cloudinit"
-    storage = "local-lvm"
+  # Setup the disk using new disks block format
+  disks {
+    ide {
+      ide3 {
+        cloudinit {
+          storage = "local-lvm"
+        }
+      }
+    }
+    virtio {
+      virtio0 {
+        disk {
+          size         = 30
+          cache        = "writeback"
+          storage      = "local-lvm"
+          iothread     = true
+          discard      = true
+        }
+      }
+    }
   }
   
   # Remove custom cloud-init for now - Ubuntu cloud images should have guest agent
@@ -61,7 +62,7 @@ resource "proxmox_vm_qemu" "this" {
   onboot = true
   tablet = false
   protection = true  # Prevent accidental deletion
-  boot = "order=scsi0;ide2"
+  boot = "order=virtio0"
   
   # Ensure VM is running
   vm_state = "running"
