@@ -2,8 +2,10 @@ all:
   hosts:
     idp1:
       ansible_host: 192.168.178.50
+      ansible_user: ubuntu
   children:
     control:
       hosts:
         ansible:
           ansible_host: 192.168.178.100
+          ansible_user: ubuntu

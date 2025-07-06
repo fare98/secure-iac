@@ -46,5 +46,5 @@ resource "local_file" "ansible_inventory" {
   content = templatefile("${path.module}/templates/ansible_inventory.tpl", {
     vms = module.vm.ansible_inventory
   })
-  filename = "${path.module}/../ansible/inventories/hosts_dynamic.yml"
+  filename = "${path.module}/../ansible/hosts_dynamic.yml"
 }

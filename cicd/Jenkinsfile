@@ -168,23 +168,23 @@ pipeline {
                     echo "Trying SSH as ubuntu user with password (temp123)..."
                     sshpass -p 'temp123' ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 ubuntu@$IP "whoami; cloud-init status; cat /var/log/cloud-init.log | tail -20" || echo "Ubuntu user SSH with password failed"
 
-                    echo "Trying SSH as ansible user..."
-                    ssh -i "${SSH_KEY}" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 ansible@$IP "whoami" || echo "Ansible user SSH failed"
+                    echo "Testing cloud-init completion..."
+                    ssh -i "${SSH_KEY}" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 ubuntu@$IP "cloud-init status" || echo "Cloud-init status check failed"
                   done
                   
                   # Test SSH connectivity with Ansible
                   echo "Testing SSH connectivity with Ansible..."
-                  ansible all -i inventories/hosts_dynamic.yml -m ping --timeout=30 || {
+                  ansible all -i hosts_dynamic.yml -m ping --timeout=30 || {
                     echo "=== SSH test failed ==="
                     echo "This could mean:"
-                    echo "1. Cloud-init hasn't finished creating the ansible user"
+                    echo "1. Cloud-init hasn't finished properly"
                     echo "2. SSH keys weren't properly injected"
                     echo "3. Network connectivity issues"
                     exit 1
                   }
                   
                   # Run Ansible playbook with dynamic inventory
-                  ansible-playbook -i inventories/hosts_dynamic.yml site.yml
+                  ansible-playbook -i hosts_dynamic.yml site.yml
                 '''
               }
             }
