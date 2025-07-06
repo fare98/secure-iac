@@ -19,6 +19,7 @@ module "vm" {
   source     = "./modules/vm"
   providers  = { proxmox = proxmox }
 
+  vm_name_prefix = var.vm_name_prefix
   vm_count     = var.vm_count
   vm_cpu       = var.vm_cpu
   vm_memory_mb = var.vm_memory_mb

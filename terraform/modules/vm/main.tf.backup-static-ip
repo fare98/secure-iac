@@ -3,7 +3,7 @@
 # ───────────────────────────────────────────────────────────────
 resource "proxmox_vm_qemu" "this" {
   count       = var.vm_count
-  name        = "${var.vm_name_prefix}-${count.index + 1}"
+  name        = "idp-${count.index + 1}"
   target_node = var.proxmox_node
   clone       = var.vm_template           # e.g. "ubuntu-cloud"
   full_clone  = true
@@ -29,7 +29,7 @@ resource "proxmox_vm_qemu" "this" {
   # Cloud-init
   ###############
   os_type     = "cloud-init"
-  ipconfig0   = "dhcp"
+  ipconfig0   = "ip=${var.vm_ip_base}.${var.vm_ip_offset + count.index}/24,gw=${var.gateway}"
   nameserver  = var.nameserver
 
   ciuser      = var.cloud_init_user
