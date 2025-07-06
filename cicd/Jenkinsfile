@@ -145,6 +145,14 @@ pipeline {
                     ssh-keygen -f "/var/lib/jenkins/.ssh/known_hosts" -R "$IP" 2>/dev/null || true
                   done
 
+                  # Debug SSH key being used by Jenkins
+                  echo "=== SSH KEY DEBUG ==="
+                  echo "SSH key file: ${SSH_KEY}"
+                  echo "SSH key fingerprint:"
+                  ssh-keygen -lf "${SSH_KEY}" || echo "Failed to get key fingerprint"
+                  echo "SSH key type:"
+                  head -1 "${SSH_KEY}" || echo "Failed to read key file"
+
                   # Debug each VM's status
                   for IP in $VM_IPS; do
                     echo "=== DEBUGGING VM STATUS: $IP ==="
@@ -154,8 +162,8 @@ pipeline {
                     echo "Testing if SSH port is open..."
                     nc -zv $IP 22 || echo "SSH port not accessible"
 
-                    echo "Trying SSH as ubuntu user with key..."
-                    ssh -i "${SSH_KEY}" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 ubuntu@$IP "whoami" || echo "Ubuntu user SSH with key failed"
+                    echo "Trying SSH as ubuntu user with key (verbose)..."
+                    ssh -vvv -i "${SSH_KEY}" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 ubuntu@$IP "whoami" || echo "Ubuntu user SSH with key failed"
 
                     echo "Trying SSH as ubuntu user with password (temp123)..."
                     sshpass -p 'temp123' ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 ubuntu@$IP "whoami; cloud-init status; cat /var/log/cloud-init.log | tail -20" || echo "Ubuntu user SSH with password failed"
