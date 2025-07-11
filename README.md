@@ -262,6 +262,19 @@ Go to Manage Jenkins → Manage Credentials → System → Global credentials:
 5. Credentials: git-ssh-key
 6. Branch: `*/main`
 7. Script Path: `cicd/Jenkinsfile`
+8. Build Triggers: Check "GitHub hook trigger for GITScm polling"
+
+#### 5. GitHub Integration Setup
+
+Jenkins automatically detects pushes to the `git@github.com:fare98/secure-iac.git` repository through the **"GitHub hook trigger for GITScm polling"** setting.
+
+**Setup Steps:**
+1. In Jenkins job configuration, go to **Build Triggers** section
+2. Check the box **"GitHub hook trigger for GITScm polling"**
+3. Ensure **Repository URL** is set to `git@github.com:fare98/secure-iac.git`
+4. Ensure **Credentials** is set to `git-ssh-key`
+5. Click **Save**
+6. Jenkins will automatically poll the GitHub repository for changes and trigger builds
 
 ## Installation
 
